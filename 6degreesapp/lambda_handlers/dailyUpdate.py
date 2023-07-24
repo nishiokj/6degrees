@@ -54,7 +54,7 @@ def select_entities(category,difficulty):
         return None  # Return early on failure
 
     try:
-        response = s3.get_object(Bucket='entity-list-6degrees', Key=category+'-'+'entities.json')
+        response = s3.get_object(Bucket='entity-list-6degrees', Key='candidate'+'-'+category+'-'+'entities.json')
         file_content = response['Body'].read().decode('utf-8')
     except Exception as e:
         print(f"Error in getting entities.json: {str(e)}")
@@ -113,8 +113,8 @@ def compute_shortest_path(entity1, entity2, category):
         entity2 = entity2[1]
         if entity1 == entity2:
             return [entity1]
-        queue_start = deque([[entity1]])
-        queue_end = deque([[entity2]])
+        queue_start = deque([[(str(entity1),[])]])
+        queue_end = deque([[(str(entity2),[])]])
         visited_start = {entity1}
         visited_end = {entity2}
     except Exception:
@@ -125,42 +125,40 @@ def compute_shortest_path(entity1, entity2, category):
             path_start = queue_start.popleft()
             path_end = queue_end.popleft()
 
-            node_start = path_start[-1]
-            node_end = path_end[0]
+            node_start = path_start[-1][0]
+            node_end = path_end[0][0]
 
-            # Check for intersection
-            if node_start in visited_end:
-                return path_start + path_end
-
-            if node_end in visited_start:
-                return path_start + path_end
-
-            # Add neighbors to the queues
-            
-            for neighbor in adj_list[str(node_start)]:
+            for neighbor, movie in adj_list[str(node_start)].items():
                 if neighbor not in visited_start:
                     visited_start.add(neighbor)
-                    queue_start.append(path_start + [neighbor])
-                    
-            for neighbor in adj_list[str(node_end)]:
+                    new_path = path_start + [(neighbor, movie)]
+                    if neighbor in visited_end:
+                        intersection_path = path_end
+                        while intersection_path[0][0] != neighbor:
+                            intersection_path = intersection_path[1:]
+                        return new_path + intersection_path[1:]
+                    queue_start.append(new_path)
+
+            for neighbor, movie in adj_list[str(node_end)].items():
                 if neighbor not in visited_end:
                     visited_end.add(neighbor)
-                    queue_end.append([neighbor] + path_end)
+                    new_path = [(neighbor, None)] + path_end
+                    if neighbor in visited_start:
+                        intersection_path = path_start
+                        while intersection_path[-1][0] != neighbor:
+                            intersection_path = intersection_path[:-1]
+                        return intersection_path + new_path[1:]
+                    queue_end.append(new_path)
     except Exception:
         print('error running bfs')
         traceback.print_exc()
-    return None
+        if not queue_start:
+            print(f"Exhausted all paths from {entity1}, no connection to {entity2}")
+            return None
 
-# Assume we have the adjacency list as a dictionary
-# adj_list = {...}
-
-# To find the shortest path
-# path = shortest_path(actor1_id, actor2_id, adj_list)
-# if path is None:
-#     print("No path found")
-# else:
-#     print("Path: ", path)
-
+        if not queue_end:
+            print(f"Exhausted all paths from {entity2}, no connection to {entity1}")
+            return None
 
 def get_first_degree(entity,category):
     if category == 'cinema':
@@ -173,30 +171,19 @@ def generate_unique_id(entity1, entity2,date,difficulty):
     # return unique_id
     return f'{date}_{difficulty}_{entity1}_{entity2}'
 
-def cache_first_degree(entity,category):
-    if category == 'cinema':
-        response = requests.get(f"https://api.themoviedb.org/3/person/{entity}/movie_credits?api_key=97e7f2d04e54e178c11c12a8523d9f05")
-        data = json.loads(response.txt)
-        ids = [movie['id'] for movie in data['cast']]
-    elif category == 'NBA':
-        response = requests.get(f"https://api.themoviedb.org/3/person/{entity}/movie_credits?api_key=97e7f2d04e54e178c11c12a8523d9f05")
-        data = json.loads(response.txt)
-        
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('cached_first_degree')
-
-    for id in ids:
-        table.put_item(
-            Item={
-                'entity_id': category + '-'+ entity,
-                'first_degree_entities': id
-            }
-        )
-    return 
 def get_names_from_actorid(actorid):
     response = requests.get(f"https://api.themoviedb.org/3/person/{actorid}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
     data = json.loads(response.text)
     return data['name']
+def get_title_from_movieid(movieid):
+    if len(movieid)==0:
+        return 'none'
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{movieid[0]}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
+    data = json.loads(response.text)
+    if 'title' in data:
+        return data['title']
+    else:
+        return 'blank'
 def lambda_handler():
     try:
         categories = ["cinema"]
@@ -214,7 +201,7 @@ def lambda_handler():
                     print(f"error in selecting entities")
                     traceback.print_exc()
                 try:
-                    shortest = compute_shortest_path(ent1, ent2,category)
+                    shortest = compute_shortest_path(ent1,ent2,category)
 
                 except Exception as e:
                     print(f"error in computing shortest path")
@@ -223,13 +210,16 @@ def lambda_handler():
                 id = generate_unique_id(ent1, ent2, today, "easy")
             except Exception as e:
                 print(f"error in generating unique id")
-            put_puzzle(id, ent1, ent2, shortest, category, "easy", today)
+      #      put_puzzle(id, ent1, ent2, shortest, category, "easy", today)
     except Exception as e:
         print(f"error in lambda handler")
     # Assuming you're using DynamoDB for caching
     print(f"the shortest path between {ent1} and {ent2} is {shortest} nodes")
     for i in range(len(shortest)):
-        name = get_names_from_actorid(shortest[i])
+        name = get_names_from_actorid(shortest[i][0])
+        if i !=0:
+            movie = get_title_from_movieid(shortest[i][1])
+            print(f"is in {movie} with ")
         print(f"{name}")
 if __name__ == "__main__":
     lambda_handler()
