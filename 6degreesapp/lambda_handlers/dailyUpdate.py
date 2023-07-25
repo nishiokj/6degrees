@@ -7,6 +7,7 @@ import redis
 import requests
 from collections import deque
 import traceback
+import time 
 s3 = boto3.resource('s3')
 def create_bucket(bucket_name):
     if s3.Bucket(bucket_name) not in s3.buckets.all():
@@ -14,7 +15,6 @@ def create_bucket(bucket_name):
         print(f"new bucket {bucket_name} created")
 def create_obj(bucket_name,obj_name):
     s3.Object('entity-list-6degrees',obj_name).put(Body='')
-    print(f"new obj {obj_name} created")
 
 def put_puzzle(id,ent1,ent2,shortestPath,category,difficulty,date):
     dynamodb = boto3.resource('dynamodb')
@@ -32,10 +32,14 @@ def put_puzzle(id,ent1,ent2,shortestPath,category,difficulty,date):
         }
     )
 #Have not added functionality for different difficulties
+def delete_s3_object(bucket_name, object_key):
+    s3 = boto3.resource('s3')
+    s3.Object(bucket_name, object_key).delete()
 def select_entities(category,difficulty):
     # logic for selecting entities
     # return entity1, entity2
     s3 = boto3.client('s3')
+    create_obj('entity-list-6degrees',category+'-used.json')
     try:
         used_entities = s3.get_object(Bucket='entity-list-6degrees',Key=category+'-'+'used.json')
         used_content = used_entities['Body'].read().decode('utf-8')
@@ -98,57 +102,72 @@ def select_entities(category,difficulty):
 #Bidirectional Breadth-First_Search
 #Using cached first-degree relationship
 #Compute the degrees of separation between Entities
-def compute_shortest_path(entity1, entity2, category):
-    # Create a queue to store the paths
+def get_adj_list(bucket_name, category):
     try:
         s3 = boto3.client('s3')
-        adj_list = s3.get_object(Bucket='entity-list-6degrees',Key='actor_adjacency_list.json')
+        if category == 'cinema':
+            adj_list = s3.get_object(Bucket='entity-list-6degrees',Key='actor_adjacency_list.json')
         adj_list_string = adj_list['Body'].read().decode('utf-8')
         adj_list = json.loads(adj_list_string)
+        return adj_list
     except Exception:
         print(f"error getting adjacency list")
         traceback.print_exc()
+def compute_shortest_path(entity1, entity2, category):
+    # Create a queue to store the paths
+    adj_list = get_adj_list('entity-list-6degrees',category)
     try:
         entity1 = entity1[1]
         entity2 = entity2[1]
         if entity1 == entity2:
             return [entity1]
-        queue_start = deque([[(str(entity1),[])]])
-        queue_end = deque([[(str(entity2),[])]])
-        visited_start = {entity1}
-        visited_end = {entity2}
-    except Exception:
-        print(f"error initializing bfs")
-        traceback.print_exc()
-    try:
+        queue_start = deque([entity1])
+        queue_end = deque([entity2])
+        visited_start = {entity1: (None, None)}
+        visited_end = {entity2: (None, None)}
         while queue_start and queue_end:
             path_start = queue_start.popleft()
             path_end = queue_end.popleft()
-
-            node_start = path_start[-1][0]
-            node_end = path_end[0][0]
-
-            for neighbor, movie in adj_list[str(node_start)].items():
+            for neighbor, edge in adj_list[str(path_start)].items():
                 if neighbor not in visited_start:
-                    visited_start.add(neighbor)
-                    new_path = path_start + [(neighbor, movie)]
-                    if neighbor in visited_end:
-                        intersection_path = path_end
-                        while intersection_path[0][0] != neighbor:
-                            intersection_path = intersection_path[1:]
-                        return new_path + intersection_path[1:]
-                    queue_start.append(new_path)
-
-            for neighbor, movie in adj_list[str(node_end)].items():
+                    visited_start[neighbor] = (path_start, edge)
+                    queue_start.append(neighbor)
+                if neighbor in visited_end:
+                    path = []
+                    curr_node = neighbor
+                    while curr_node != entity1:
+                        parent_node, connecting_edge = visited_start[curr_node]
+                        path.append((curr_node, connecting_edge))
+                        curr_node = parent_node
+                    path.append((entity1, None))
+                    path.reverse()
+                    curr_node = neighbor
+                    while curr_node != entity2:
+                        parent_node, connecting_edge = visited_end[curr_node]
+                        path.append((curr_node, connecting_edge))
+                        curr_node = parent_node
+                    path.append((entity2, None))
+                    return path
+            for neighbor, edge in adj_list[str(path_end)].items():
                 if neighbor not in visited_end:
-                    visited_end.add(neighbor)
-                    new_path = [(neighbor, None)] + path_end
-                    if neighbor in visited_start:
-                        intersection_path = path_start
-                        while intersection_path[-1][0] != neighbor:
-                            intersection_path = intersection_path[:-1]
-                        return intersection_path + new_path[1:]
-                    queue_end.append(new_path)
+                    visited_end[neighbor] = (path_end, edge)
+                    queue_end.append(neighbor)
+                if neighbor in visited_start:
+                    path = []
+                    curr_node = neighbor
+                    while curr_node != entity1:
+                        parent_node, connecting_edge = visited_start[curr_node]
+                        path.append((curr_node, connecting_edge))
+                        curr_node = parent_node
+                    path.append((entity1, None))
+                    path.reverse()
+                    curr_node = neighbor
+                    while curr_node != entity2:
+                        parent_node, connecting_edge = visited_end[curr_node]
+                        path.append((curr_node, connecting_edge))
+                        curr_node = parent_node
+                    path.append((entity2, None))
+                    return path
     except Exception:
         print('error running bfs')
         traceback.print_exc()
@@ -160,25 +179,19 @@ def compute_shortest_path(entity1, entity2, category):
             print(f"Exhausted all paths from {entity2}, no connection to {entity1}")
             return None
 
-def get_first_degree(entity,category):
-    if category == 'cinema':
-        response = requests.get(f"https://api.themoviedb.org/3/person/{entity}/movie_credits?api_key=97e7f2d04e54e178c11c12a8523d9f05")
-        data = json.loads(response.txt)
-        ids = [movie['id'] for movie in data['cast']]
-        return ids
 def generate_unique_id(entity1, entity2,date,difficulty):
     # logic for generating unique id
     # return unique_id
     return f'{date}_{difficulty}_{entity1}_{entity2}'
 
 def get_names_from_actorid(actorid):
-    response = requests.get(f"https://api.themoviedb.org/3/person/{actorid}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
+    response = requests.get(f"https://api.themoviedb.org/3/person/{int(actorid)}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
     data = json.loads(response.text)
     return data['name']
 def get_title_from_movieid(movieid):
-    if len(movieid)==0:
-        return 'none'
-    response = requests.get(f"https://api.themoviedb.org/3/movie/{movieid[0]}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
+    if movieid == None:
+        return ""
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{int(movieid)}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
     data = json.loads(response.text)
     if 'title' in data:
         return data['title']
@@ -202,24 +215,71 @@ def lambda_handler():
                     traceback.print_exc()
                 try:
                     shortest = compute_shortest_path(ent1,ent2,category)
-
+                    while(len(shortest) < 5):
+                        entities = select_entities(category, "easy")
+                        ent1 = entities[0]
+                        ent2 = entities[1]
+                        shortest = compute_shortest_path(ent1,ent2,category)
+                    delete_s3_object('entity-list-6degrees',category+'-used.json')
+                    print(f"Finding the shortest path between {ent1[0]} and {ent2[0]}...")
+                   # print(f"the shortest path between {ent1[0]} and {ent2[0]} is {shortest}")
+                    try:
+                        print_path(shortest)
+                    except Exception:
+                        traceback.print_exc()
                 except Exception as e:
-                    print(f"error in computing shortest path")
-
+                    print(f"exception: generating new entities")
             try:
                 id = generate_unique_id(ent1, ent2, today, "easy")
             except Exception as e:
                 print(f"error in generating unique id")
+        
       #      put_puzzle(id, ent1, ent2, shortest, category, "easy", today)
     except Exception as e:
         print(f"error in lambda handler")
     # Assuming you're using DynamoDB for caching
-    print(f"the shortest path between {ent1} and {ent2} is {shortest} nodes")
-    for i in range(len(shortest)):
-        name = get_names_from_actorid(shortest[i][0])
-        if i !=0:
-            movie = get_title_from_movieid(shortest[i][1])
-            print(f"is in {movie} with ")
-        print(f"{name}")
+    
+def print_path(path):
+    seen = {}
+    i = 0
+    while True:
+        ent1, _ = path[i]
+        ent2, edgeids = path[i+1]
+
+        if ent1 in seen:
+            break
+
+        seen[ent1] = 1
+        ent1_name = get_names_from_actorid(ent1)
+        ent2_name = get_names_from_actorid(ent2)
+
+        # skip if ent1 and ent2 are the same
+        if ent1 != ent2 and edgeids is not None:  
+            movie_names = [get_title_from_movieid(edge_id) for edge_id in edgeids]
+            print(f"{ent1_name} is in {', '.join(movie_names)} with {ent2_name}")
+        i += 1
+    j = len(path) - 1
+    reverse_statements = []
+    while True:
+        ent1, _ = path[j]
+        ent2, edgeids = path[j-1]
+
+        if ent1 in seen:
+            break
+
+        seen[ent1] = 1
+        ent1_name = get_names_from_actorid(ent1)
+        ent2_name = get_names_from_actorid(ent2)
+
+        if ent1 != ent2 and edgeids is not None:  
+            movie_names = [get_title_from_movieid(edge_id) for edge_id in edgeids]
+            statement = f"{ent2_name} is in {', '.join(movie_names)} with {ent1_name}"
+            reverse_statements.append(statement)
+        j -= 1
+
+    # Print the statements in reverse order
+    for statement in reversed(reverse_statements):
+        print(statement)
+
 if __name__ == "__main__":
     lambda_handler()
