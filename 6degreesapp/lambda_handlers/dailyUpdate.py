@@ -3,12 +3,58 @@ import json
 # other necessary imports
 import random 
 from datetime import date
+from datetime import datetime
 import redis
 import requests
 from collections import deque
 import traceback
 import time 
+import openai
+import pytz
+from botocore.exceptions import BotoCoreError, ClientError
+import base64
 s3 = boto3.resource('s3')
+def get_secret(key):
+    if key=='TMDB_KEY':  #temp line
+        return '97e7f2d04e54e178c11c12a8523d9f05' #temp line
+    if key =='OPENAI_KEY':
+        return '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'
+    secret_name = key
+    region_name = "us-east-1"
+
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name,
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError as e:
+        raise Exception("Couldn't retrieve the secret") from e
+    else:
+        if 'SecretString' in get_secret_value_response:
+            return get_secret_value_response['SecretString']
+        else:
+            
+            return base64.b64decode(get_secret_value_response['SecretBinary'])
+
+def get_image_url(id):
+    # Setup S3 client
+    s3 = boto3.client('s3')
+
+    # Get id-url map from S3
+    id_url_map_obj = s3.get_object(Bucket='entity-list-6degrees', Key='actor_id_url_map.json')
+    id_url_map = json.loads(id_url_map_obj['Body'].read().decode('utf-8'))
+
+    # Look up the URL for the given ID
+    url = id_url_map.get(id)
+    
+    # If we found a URL, return it; otherwise, return an error message
+    if url:
+        return url
+    else:
+        return url
 def create_bucket(bucket_name):
     if s3.Bucket(bucket_name) not in s3.buckets.all():
         s3.create_bucket(Bucket=bucket_name)
@@ -46,9 +92,7 @@ def select_entities(category,difficulty):
     except Exception as e:
         print(f"Error in getting used entities: {str(e)}")
         return None  # Return early on failure
-
     try:
-
         if used_content:
             past_data = json.loads(used_content)
         else:
@@ -56,31 +100,25 @@ def select_entities(category,difficulty):
     except Exception as e:
         print(f"Error in loading JSON data from used entities content: {str(e)}")
         return None  # Return early on failure
-
     try:
         response = s3.get_object(Bucket='entity-list-6degrees', Key='candidate'+'-'+category+'-'+'entities.json')
         file_content = response['Body'].read().decode('utf-8')
     except Exception as e:
         print(f"Error in getting entities.json: {str(e)}")
         return None  # Return early on failure
-
     try:
         data = json.loads(file_content)
     except Exception as e:
         print(f"Error in loading JSON data from entities content: {str(e)}")
         return None  # Return early on failure
-
     keys = list(data.keys())
-    
     while True:
         try:
             random_keys = random.sample(keys, 2)
         except Exception as e:
             print(f"Error in sampling keys: {str(e)}")
             return None  # Return early on failure
-
         pair_key = '-'.join(sorted([random_keys[0], random_keys[1]]))
-
         if not past_data or pair_key not in past_data:
             past_data[pair_key] = True
             try:
@@ -90,7 +128,6 @@ def select_entities(category,difficulty):
             except Exception as e:
                 print(f"Error in getting entity data: {str(e)}")
                 return None  # Return early on failure
-
     try:
         s3.put_object(Body=json.dumps(past_data), Bucket='entity-list-6degrees', Key=category+'-'+'used.json')
     except Exception as e:
@@ -183,23 +220,74 @@ def generate_unique_id(entity1, entity2,date,difficulty):
     # logic for generating unique id
     # return unique_id
     return f'{date}_{difficulty}_{entity1}_{entity2}'
+def put_entity_stats(entity1,entity2,category,OPENAI_KEY):
+    dynamodb= boto3.resource('dynamodb')
+    table = dynamodb.Table('Entities')
+    rating1 = 0
+    rating2 = 0
+    
+    eastern = pytz.timezone('US/Eastern')
+    eastern_time = datetime.now(eastern)
+    current_date = eastern_time.date()
+    today = current_date.strftime('%Y-%m-%d')
+    try:
+        openai.api_key=OPENAI_KEY
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": "You are a movie buff and know a lot of fun facts about actors"},
+                {"role": "user", "content": "In 150-300 characters, list some fun facts about "+ entity1[0]+"?"}
+            ],
+        max_tokens=300
+        )
+        funFacts1 = response['choices'][0]['message']['content']
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+                {"role": "system", "content": "You are a movie buff and know a lot of fun facts about actors"},
+                {"role": "user", "content": "In 150-300 characters, list fun facts about "+ entity2[0]+"?"}
+            ],
+        max_tokens=300
+        )
+        funFacts2 = response['choices'][0]['message']['content']
+    except Exception:
+        traceback.print_exc()
+    img1 = get_image_url(str(entity1[1]))
+    img2 = get_image_url(str(entity2[1]))
+    table.put_item(
+        Item={
+            'date': category+'-'+today,
+            'entity1' : {
+                        'id':entity1[1],
+                        'name': entity1[0],
+                        'rating': rating1,
+                        'funFacts':funFacts1,
+                        'img':img1},
 
-def get_names_from_actorid(actorid):
-    response = requests.get(f"https://api.themoviedb.org/3/person/{int(actorid)}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
+            'entity2': {'id': entity2[1],
+                        'name':entity2[0],
+                        'rating':rating2,
+                        'funFacts':funFacts2,
+                        'img':img2}
+        }
+    )
+    return
+def get_names_from_actorid(actorid,TMDB_KEY):
+    response = requests.get(f"https://api.themoviedb.org/3/person/{int(actorid)}?api_key={TMDB_KEY}")
     data = json.loads(response.text)
     return data['name']
-def get_title_from_movieid(movieid):
+def get_title_from_movieid(movieid,TMDB_KEY):
     if movieid == None:
         return ""
-    response = requests.get(f"https://api.themoviedb.org/3/movie/{int(movieid)}?api_key=97e7f2d04e54e178c11c12a8523d9f05")
+    response = requests.get(f"https://api.themoviedb.org/3/movie/{int(movieid)}?api_key={TMDB_KEY}")
     data = json.loads(response.text)
     if 'title' in data:
         return data['title']
     else:
         return 'blank'
-def lambda_handler():
+def lambda_handler(event,context):
     try:
-        categories = ["cinema"]
+        categories = event['categories']
         # the above line defines the categories you will work with. You can add more categories if you wish.
         for category in categories:
             # this is the main loop that will run for each category you have defined.
@@ -215,16 +303,17 @@ def lambda_handler():
                     traceback.print_exc()
                 try:
                     shortest = compute_shortest_path(ent1,ent2,category)
-                    while(len(shortest) < 5):
+                    while(len(shortest) < 3):
                         entities = select_entities(category, "easy")
                         ent1 = entities[0]
                         ent2 = entities[1]
                         shortest = compute_shortest_path(ent1,ent2,category)
                     delete_s3_object('entity-list-6degrees',category+'-used.json')
+    
                     print(f"Finding the shortest path between {ent1[0]} and {ent2[0]}...")
                    # print(f"the shortest path between {ent1[0]} and {ent2[0]} is {shortest}")
                     try:
-                        print_path(shortest)
+                        print_path(shortest,category)
                     except Exception:
                         traceback.print_exc()
                 except Exception as e:
@@ -235,13 +324,17 @@ def lambda_handler():
                 print(f"error in generating unique id")
         
       #      put_puzzle(id, ent1, ent2, shortest, category, "easy", today)
+            OPENAI_KEY = get_secret('OPENAI_KEY')
+            put_entity_stats(ent1,ent2,category,OPENAI_KEY)
     except Exception as e:
+        traceback.print_exc()
         print(f"error in lambda handler")
     # Assuming you're using DynamoDB for caching
     
-def print_path(path):
+def print_path(path,category):
     seen = {}
     i = 0
+    TMDB_KEY = get_secret('TMDB_KEY')
     while True:
         ent1, _ = path[i]
         ent2, edgeids = path[i+1]
@@ -250,13 +343,16 @@ def print_path(path):
             break
 
         seen[ent1] = 1
-        ent1_name = get_names_from_actorid(ent1)
-        ent2_name = get_names_from_actorid(ent2)
+        if category=='cinema':
+            
+            ent1_name = get_names_from_actorid(ent1,TMDB_KEY)
+            ent2_name = get_names_from_actorid(ent2,TMDB_KEY)
 
         # skip if ent1 and ent2 are the same
-        if ent1 != ent2 and edgeids is not None:  
-            movie_names = [get_title_from_movieid(edge_id) for edge_id in edgeids]
-            print(f"{ent1_name} is in {', '.join(movie_names)} with {ent2_name}")
+        if ent1 != ent2 and edgeids is not None: 
+            if category=='cinema': 
+                movie_names = [get_title_from_movieid(edge_id,TMDB_KEY) for edge_id in edgeids]
+                print(f"{ent1_name} was in {', '.join(movie_names)} with {ent2_name}")
         i += 1
     j = len(path) - 1
     reverse_statements = []
@@ -268,18 +364,18 @@ def print_path(path):
             break
 
         seen[ent1] = 1
-        ent1_name = get_names_from_actorid(ent1)
-        ent2_name = get_names_from_actorid(ent2)
+        if category=='cinema':
+            ent1_name = get_names_from_actorid(ent1,TMDB_KEY)
+            ent2_name = get_names_from_actorid(ent2,TMDB_KEY)
 
         if ent1 != ent2 and edgeids is not None:  
-            movie_names = [get_title_from_movieid(edge_id) for edge_id in edgeids]
-            statement = f"{ent2_name} is in {', '.join(movie_names)} with {ent1_name}"
-            reverse_statements.append(statement)
+            if category=='cinema':
+                movie_names = [get_title_from_movieid(edge_id,TMDB_KEY) for edge_id in edgeids]
+                statement = f"{ent2_name} was in {', '.join(movie_names)} with {ent1_name}"
+                reverse_statements.append(statement)
         j -= 1
 
     # Print the statements in reverse order
     for statement in reversed(reverse_statements):
         print(statement)
 
-if __name__ == "__main__":
-    lambda_handler()
