@@ -1,4 +1,6 @@
 from flask import Flask
-app = Flask(__name__)
 
-@app.route('api/paths', methods=['POST'])
+def create_app():
+    app = Flask(__name__)
+
+    return app

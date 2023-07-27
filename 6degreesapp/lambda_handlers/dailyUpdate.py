@@ -4,41 +4,15 @@ import json
 import random 
 from datetime import date
 from datetime import datetime
-import redis
 import requests
 from collections import deque
-import traceback
-import time 
+import traceback 
 import openai
 import pytz
 from botocore.exceptions import BotoCoreError, ClientError
 import base64
+import os #newchange
 s3 = boto3.resource('s3')
-def get_secret(key):
-    if key=='TMDB_KEY':  #temp line
-        return '97e7f2d04e54e178c11c12a8523d9f05' #temp line
-    if key =='OPENAI_KEY':
-        return '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'
-    secret_name = key
-    region_name = "us-east-1"
-
-    session = boto3.session.Session()
-    client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name,
-    )
-
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
-        raise Exception("Couldn't retrieve the secret") from e
-    else:
-        if 'SecretString' in get_secret_value_response:
-            return get_secret_value_response['SecretString']
-        else:
-            
-            return base64.b64decode(get_secret_value_response['SecretBinary'])
-
 def get_image_url(id):
     # Setup S3 client
     s3 = boto3.client('s3')
@@ -220,7 +194,13 @@ def generate_unique_id(entity1, entity2,date,difficulty):
     # logic for generating unique id
     # return unique_id
     return f'{date}_{difficulty}_{entity1}_{entity2}'
-def put_entity_stats(entity1,entity2,category,OPENAI_KEY):
+def ai_image(entity_name):
+    openai.api_key=os.getenv("OPEN_AI_KEY")
+    words = "beautiful natural background image with 3D perspective. " 
+    response = openai.Image.create(prompt=words,n=1,size="256x256",
+                                   )
+    return response['data'][0]['url']
+def put_entity_stats(entity1,entity2,category):
     dynamodb= boto3.resource('dynamodb')
     table = dynamodb.Table('Entities')
     rating1 = 0
@@ -230,30 +210,35 @@ def put_entity_stats(entity1,entity2,category,OPENAI_KEY):
     eastern_time = datetime.now(eastern)
     current_date = eastern_time.date()
     today = current_date.strftime('%Y-%m-%d')
+    print(today)
     try:
-        openai.api_key=OPENAI_KEY
+        openai.api_key=os.getenv("OPEN_AI_KEY")
         response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
                 {"role": "system", "content": "You are a movie buff and know a lot of fun facts about actors"},
-                {"role": "user", "content": "In 150-300 characters, list some fun facts about "+ entity1[0]+"?"}
+                {"role": "user", "content": "write a fun fact about "+ entity1[0]+"?"}
             ],
-        max_tokens=300
+        max_tokens=150
         )
         funFacts1 = response['choices'][0]['message']['content']
         response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
                 {"role": "system", "content": "You are a movie buff and know a lot of fun facts about actors"},
-                {"role": "user", "content": "In 150-300 characters, list fun facts about "+ entity2[0]+"?"}
+                {"role": "user", "content": "write a fun fact about "+ entity2[0]+"?"}
             ],
-        max_tokens=300
+        max_tokens=150
         )
         funFacts2 = response['choices'][0]['message']['content']
     except Exception:
         traceback.print_exc()
     img1 = get_image_url(str(entity1[1]))
     img2 = get_image_url(str(entity2[1]))
+    backdrop1 = ai_image(str(entity1[0]))
+    backdrop2 = ai_image(str(entity2[0]))
+    if category=='cinema':
+        type = "actor"
     table.put_item(
         Item={
             'date': category+'-'+today,
@@ -262,13 +247,17 @@ def put_entity_stats(entity1,entity2,category,OPENAI_KEY):
                         'name': entity1[0],
                         'rating': rating1,
                         'funFacts':funFacts1,
-                        'img':img1},
+                        'img':img1,
+                        'type':type,
+                        'background':backdrop1},
 
             'entity2': {'id': entity2[1],
                         'name':entity2[0],
                         'rating':rating2,
                         'funFacts':funFacts2,
-                        'img':img2}
+                        'img':img2,
+                        'type':type,
+                        'background':backdrop2}
         }
     )
     return
@@ -324,8 +313,7 @@ def lambda_handler(event,context):
                 print(f"error in generating unique id")
         
       #      put_puzzle(id, ent1, ent2, shortest, category, "easy", today)
-            OPENAI_KEY = get_secret('OPENAI_KEY')
-            put_entity_stats(ent1,ent2,category,OPENAI_KEY)
+            put_entity_stats(ent1,ent2,category)
     except Exception as e:
         traceback.print_exc()
         print(f"error in lambda handler")
@@ -334,7 +322,7 @@ def lambda_handler(event,context):
 def print_path(path,category):
     seen = {}
     i = 0
-    TMDB_KEY = get_secret('TMDB_KEY')
+    TMDB_KEY = os.getenv("TMDB_KEY")
     while True:
         ent1, _ = path[i]
         ent2, edgeids = path[i+1]
@@ -379,3 +367,7 @@ def print_path(path,category):
     for statement in reversed(reverse_statements):
         print(statement)
 
+if __name__ == '__main__':
+    event = {}
+    event['categories'] = ['cinema']
+    lambda_handler(event,None)
