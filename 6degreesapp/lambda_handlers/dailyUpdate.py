@@ -196,9 +196,8 @@ def generate_unique_id(entity1, entity2,date,difficulty):
     return f'{date}_{difficulty}_{entity1}_{entity2}'
 def ai_image(entity_name):
     openai.api_key=os.getenv("OPEN_AI_KEY")
-    words = "beautiful natural background image with 3D perspective. " 
-    response = openai.Image.create(prompt=words,n=1,size="256x256",
-                                   )
+    words = "Generate a vibrant, high resolution backdrop that is highly creative yet cohesive" 
+    response = openai.Image.create(prompt=words,n=1,size="512x512",                               )
     return response['data'][0]['url']
 def put_entity_stats(entity1,entity2,category):
     dynamodb= boto3.resource('dynamodb')

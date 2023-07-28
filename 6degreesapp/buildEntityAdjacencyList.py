@@ -10,6 +10,7 @@ import time
 from multiprocessing import Pool
 API_KEY = '97e7f2d04e54e178c11c12a8523d9f05'
 s3 = boto3.client('s3')
+
 def get_actor_connections(args):
     actor_id, actors = args
     """Fetches all the actors that the given actor has worked with."""

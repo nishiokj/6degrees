@@ -3,6 +3,8 @@ from flask_cors import CORS
 import boto3
 import json
 import logging
+import os 
+import openai
 app = Flask(__name__)
 CORS(app)
 logger = logging.getLogger(__name__)
@@ -22,8 +24,10 @@ logger.addHandler(f_handler)
 
 @app.route('/')
 def home():
-    return "Hello, World!"
-
+    openai.api_key=os.getenv("OPEN_AI_KEY")
+    words = "Generate a vibrant, high resolution backdrop that is highly creative yet cohesive" 
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+    return response['data'][0]['url']
 @app.route('/fetchCards', methods=['GET'])
 def get_Cards():
     logger.info("Inside get_Cards")
@@ -38,7 +42,7 @@ def get_Cards():
 
     try:
         response = table.get_item(Key={'date':category_key+'-'+date_key})
-        print(response)
+        print(response['Item'])
         if 'Item' in response:
             return jsonify(response['Item'])
         else:

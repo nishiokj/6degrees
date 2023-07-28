@@ -1,0 +1,174 @@
+2023-07-27 22:06:34,829 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
+2023-07-27 22:07:49,637 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
+2023-07-27 22:07:49,646 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
+2023-07-27 22:11:04,589 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
+2023-07-27 22:11:06,388 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
+2023-07-27 22:11:06,392 - 6degreesapp.app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask_cors/extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+                                                ^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/6degreesapp/app.py", line 29, in home
+    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_resources/image.py", line 29, in create
+    requestor = api_requestor.APIRequestor(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/api_requestor.py", line 138, in __init__
+    self.api_key = key or util.default_api_key()
+                          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jevinnishioka/Desktop/6degrees/env/lib/python3.11/site-packages/openai/util.py", line 186, in default_api_key
+    raise openai.error.AuthenticationError(
+openai.error.AuthenticationError: No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details.
