@@ -7,10 +7,11 @@ import Game from './components/Game'
 import * as THREE from 'three';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Plane } from '@react-three/drei';
-import {BoxGeometry} from 'three'
-function Box() {
-  
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import LandingPage from './LandingPage'
 
+
+function Box() {
   return (
     <group>
       <Plane args={[5, 5]} />
@@ -34,14 +35,14 @@ function App() {
   return (
   
     <div className="App" style={{color: 'black'}}>
-      <Game category="cinema">
-      </Game>
-      <Canvas>
-        <Box>
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
-        </Box>
-      </Canvas>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage/>}/>
+          <Route path="/game" element={<Game/>}/>
+        </Routes>
+      </Router>
+
+
     </div>
 
   );

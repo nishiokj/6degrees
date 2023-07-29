@@ -22,12 +22,24 @@ f_handler.setFormatter(f_format)
 logger.addHandler(c_handler)
 logger.addHandler(f_handler)
 
+
+def create_presigned_url(bucket_name='6degreesimages', object_name='LandingPage', expiration=43200):
+    s3 = boto3.client('s3')
+
+    try:
+        response = s3.generate_presigned_url('get_object',
+                                             Params={'Bucket': bucket_name,
+                                                     'Key': object_name},
+                                             ExpiresIn=expiration)
+    except Exception as e:
+        print(e)
+        return None
+
+    return response
 @app.route('/')
 def home():
-    openai.api_key=os.getenv("OPEN_AI_KEY")
-    words = "Generate a vibrant, high resolution backdrop that is highly creative yet cohesive" 
-    response = openai.Image.create(prompt=words,n=1,size="1024x1024",                               )
-    return response['data'][0]['url']
+    url = create_presigned_url()
+    return jsonify({'url':url})
 @app.route('/fetchCards', methods=['GET'])
 def get_Cards():
     logger.info("Inside get_Cards")

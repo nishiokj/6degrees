@@ -16,7 +16,7 @@ const Game = (category) => {
         const fetchGameData = async () => {
             const date = getEasternTime();
             try {
-                const url = `http://127.0.0.1:5007/fetchCards?date=${date}&category=cinema`
+                const url = `http://127.0.0.1:5010/fetchCards?date=${date}&category=cinema`
                 const response = await axios.get(url);
                 console.log(response)
                 const entities = Object.keys(response.data)
