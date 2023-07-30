@@ -9,6 +9,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Plane } from '@react-three/drei';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LandingPage from './LandingPage'
+import GameEngine from './components/GameEngine';
 
 
 function Box() {
@@ -29,6 +30,11 @@ const AppContainer = styled.div`
   align-items: center;
   height: 100vh;
 `;
+const TempContainer = styled.div`
+  position:absolute;
+  top: 50%;
+  left: 50%;
+`
 
 
 function App() {
@@ -38,7 +44,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage/>}/>
-          <Route path="/game" element={<Game/>}/>
+          <Route path="/game" element={<GameEngine/>}/>
         </Routes>
       </Router>
 

@@ -29,7 +29,7 @@ cv2.imwrite('logo_with_border.png', img)
 
 """
 # Read image using OpenCV
-img = cv2.imread('logo2.png', -1)
+img = cv2.imread('logo9.png', -1)
 
 # Convert the image to gray scale
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

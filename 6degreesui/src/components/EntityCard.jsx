@@ -2,14 +2,8 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import ReactCardFlip from 'react-card-flip';
 import Me from '../images/headshot_jevin_thumbnail.png'
-import moment from 'moment-timezone';
-import axios from 'axios';
 import StarIcon from '@mui/icons-material/Star';
-import StarHalfIcon from '@mui/icons-material/StarHalf';
-import { shadows } from '@mui/system';
-// Get current date in Eastern American Time
-
-
+import WholeLogo from '../WholeLogo.jsx'
 const CardFront = styled.div`
   width: 12vw;  // This could be any percentage you find suitable.
   aspect-ratio: 6.4 / 8.9;  // This is the aspect ratio of the card.
@@ -53,6 +47,7 @@ const CardBack = styled.div`
   transition: 0.3s;
   overflow:hidden;
   border-radius:15px;
+  
   &:hover {
     box-shadow: 0 20px 30px 0 rgba(0,0,0,0.2);
   }
@@ -67,6 +62,7 @@ const CardBack = styled.div`
     z-index: 1;
     border-radius:15px;
     
+    
   }
 `;
 const ImageContainer = styled.div`
@@ -80,6 +76,18 @@ const ImageContainer = styled.div`
   position:relative;
   
 
+`;
+const StyledLogo = styled.div`
+    position: absolute;
+    background-size: cover;
+    top:-5%;
+    left:-7%;  // You can adjust this to position your logo vertically  // This will center the logo horizontally  // This ensures the center of the logo is at the position specified by top and left
+    z-index: 3;  // This ensures the logo stays on top of the backdrop
+    transform-origin: 50% 50%;
+    filter:brightness(90%);
+    &:hover {
+        opacity: .75;
+    }
 `;
 const OverlayImage = styled.div`
   position: absolute;
@@ -98,7 +106,7 @@ const OverlayImage = styled.div`
     left: 0;
     background: rgba(102, 153, 153, 0.8); /* White with 30% opacity */
     border-radius: 10px;
-    background: rgba(0, 102, 0, 0.1);
+    background: rgba(0, 0, 0, 0.5);
   }
 `;
 
@@ -217,11 +225,34 @@ const ImgContainer = styled.div`
     right: 0;
     bottom: 0;
     left: 0;
-    background: rgba(102, 153, 153, 0.25); /* White with 30% opacity */
+    background: rgba(0, 0, 0, 0.1); /* White with 30% opacity */
     border-radius: 15px;
   }
 `;
-
+const LogoContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 8%;
+  left: 22%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  z-index:10;
+  filter:brightness(110%);
+`;
+const BackLogoContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom:-1%;
+  left: 14%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  z-index:10;
+  filter:brightness(110%);
+`;
 // Our Card component
 function Card({name,funFacts,img,rating,id,type,background}) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -236,6 +267,7 @@ function Card({name,funFacts,img,rating,id,type,background}) {
       
         <ImgContainer><img src={Me} style={{borderRadius:'20px',width:'100%'}}/></ImgContainer>
         <InsideFrame></InsideFrame>
+        <LogoContainer><WholeLogo  width="4vw" height="3.9vh"></WholeLogo></LogoContainer>
       </ImageContainer>
           <SubContainer>
           <NameContainer>{name}</NameContainer>
@@ -249,6 +281,7 @@ function Card({name,funFacts,img,rating,id,type,background}) {
       <CardBack onClick={handleClick}>
         <OverlayImage src={background}/>
         <TextContainer>{funFacts}</TextContainer>
+        <BackLogoContainer><WholeLogo  width="4vw" height="3.9vh"></WholeLogo></BackLogoContainer>
       </CardBack>
     </StyledReactCardFlip>
   );

@@ -21,7 +21,7 @@ def create_obj(bucket_name,obj_name):
 def LandingPageBackground(bucket_name):
     create_obj('6degreesimages','LandingPage')
     openai.api_key=os.getenv("OPENAI_API_KEY")
-    words = "generate a highly cohesive, detailed backdrop. Vivid and beautiful, think michalangelo meets tokyo. cohesive shapes please" 
+    words = "Generate an image that embodies the grandeur and divine inspiration of Michelangelo's Sistine Chapel ceiling. The scene should be dominated by intricate Gothic architectural elements, resembling a heavenly cathedral, filled with the awe and splendor of divine presence. Ornate structures such as vaulted arches, detailed frescoes, and stunning mosaics should fill the scene, akin to the rich detailing in the Sistine Chapel. The color palette should include a variety of hues found in Michelangelo's works, such as warm earth tones, subtle blues, muted greens, and deep reds. The overall effect should be one of warmth, light, and profound beauty. The shapes of the architectural elements should be clear, well-formed, and crisply defined. Despite the architectural and design precision, the image should have the essence of a renaissance painting, mirroring the artist's interpretation of the heavenly realms."
     response = openai.Image.create(prompt=words,n=1,size="1024x1024")
     url = response['data'][0]['url']
     response = requests.get(url)
@@ -217,7 +217,7 @@ def generate_unique_id(entity1, entity2,date,difficulty):
     return f'{date}_{difficulty}_{entity1}_{entity2}'
 def ai_image(entity_name):
     openai.api_key=os.getenv("OPENAI_API_KEY")
-    words = "Generate a vibrant, high resolution backdrop that is highly creative yet cohesive" 
+    words = "cohesive pattern. aesthetic. intense, beautiful but harsh" 
     response = openai.Image.create(prompt=words,n=1,size="512x512",                               )
     return response['data'][0]['url']
 def put_entity_stats(entity1,entity2,category):
